@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summative Assessment - MA Mu'allimin NU</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @media print {
+            body * { visibility: hidden; }
+            #print-area, #print-area * { visibility: visible; }
+            #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+            .no-print { display: none !important; }
+        }
+        .modal-enter { animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    </style>
+</head>
+<body class="text-gray-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-emerald-700 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <img id="nav-logo" src="https://placehold.co/100x100/ffffff/047857?text=NU" alt="Logo" class="h-10 w-10 rounded-full bg-white p-1 object-cover">
+                    <div>
+                        <h1 class="text-lg font-bold leading-tight">Summative Assessment</h1>
+                        <p class="text-xs text-emerald-200">MA Mu'allimin NU | By HM. Wafi</p>
+                    </div>
+                </div>
+                <div id="nav-user-info" class="hidden flex items-center gap-4">
+                    <span id="nav-username" class="font-medium text-sm"></span>
+                    <button onclick="app.logout()" class="text-sm bg-emerald-800 hover:bg-emerald-900 px-3 py-1.5 rounded transition">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Custom Toast Notification -->
+    <div id="toast-container" class="fixed top-20 right-4 z-50 flex flex-col gap-2"></div>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full relative">
+        
+        <!-- View: Login -->
+        <div id="view-login" class="max-w-md mx-auto bg-white rounded-xl shadow-xl overflow-hidden mt-10">
+            <div class="p-8">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900">Portal Asesmen</h2>
+                    <p class="text-gray-500 text-sm mt-1">Silakan masuk sesuai dengan peran Anda.</p>
+                </div>
+
+                <div class="flex border-b mb-6">
+                    <button onclick="app.switchLoginTab('student')" id="tab-student" class="flex-1 py-2 font-medium text-emerald-600 border-b-2 border-emerald-600">Siswa</button>
+                    <button onclick="app.switchLoginTab('admin')" id="tab-admin" class="flex-1 py-2 font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700">Admin/Guru</button>
+                </div>
+
+                <!-- Student Login Form -->
+                <form id="form-login-student" onsubmit="app.loginStudent(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap (Username)</label>
+                        <input type="text" id="login-student-name" required class="w-full px-4 py-2 border rounded-lg focus:ring-emerald-500 focus:border-emerald-500" placeholder="Contoh: Budi Santoso">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
+                        <select id="login-student-class" required class="w-full px-4 py-2 border rounded-lg focus:ring-emerald-500 focus:border-emerald-500 bg-gray-50">
+                            <option value="10">Kelas 10</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">No. Presensi (Password)</label>
+                        <input type="password" id="login-student-presensi" required class="w-full px-4 py-2 border rounded-lg focus:ring-emerald-500 focus:border-emerald-500" placeholder="Contoh: 15">
+                    </div>
+                    <button type="submit" class="w-full bg-emerald-600 text-white font-medium py-2.5 rounded-lg hover:bg-emerald-700 transition">Masuk sebagai Siswa</button>
+                </form>
+
+                <!-- Admin Login Form -->
+                <form id="form-login-admin" onsubmit="app.loginAdmin(event)" class="space-y-4 hidden">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Username Admin</label>
+                        <input type="text" id="login-admin-username" required class="w-full px-4 py-2 border rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input type="password" id="login-admin-password" required class="w-full px-4 py-2 border rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <button type="submit" class="w-full bg-gray-800 text-white font-medium py-2.5 rounded-lg hover:bg-gray-900 transition">Masuk sebagai Admin</button>
+                    <p class="text-xs text-gray-400 text-center mt-2">Default: admin / admin123</p>
+                </form>
+            </div>
+        </div>
+
+        <!-- View: Admin Dashboard -->
+        <div id="view-admin" class="hidden space-y-6">
+            <div class="flex justify-between items-end border-b pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Admin Dashboard</h2>
+                    <p class="text-gray-500 text-sm">Kelola pengaturan, soal, dan lihat hasil.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="app.startTestAsStudent()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        Uji Coba Soal
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Settings Card -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="font-semibold text-lg mb-4 flex items-center gap-2"><svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Pengaturan</h3>
+                    <form onsubmit="app.saveSettings(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">URL Logo Sekolah</label>
+                            <input type="text" id="admin-logo-url" class="w-full px-3 py-1.5 border rounded text-sm focus:ring-emerald-500 focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Ganti Password Admin</label>
+                            <input type="text" id="admin-new-password" class="w-full px-3 py-1.5 border rounded text-sm focus:ring-emerald-500 focus:border-emerald-500" placeholder="Isi untuk mengganti">
+                        </div>
+                        <button type="submit" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-medium py-2 rounded transition">Simpan Pengaturan</button>
+                    </form>
+                </div>
+
+                <!-- Stats Card -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 col-span-1 md:col-span-2">
+                    <h3 class="font-semibold text-lg mb-4 flex items-center gap-2"><svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Rekap Nilai Siswa</h3>
+                    <div class="overflow-x-auto max-h-48 overflow-y-auto rounded border">
+                        <table class="min-w-full text-sm text-left">
+                            <thead class="bg-gray-50 text-gray-600 sticky top-0">
+                                <tr>
+                                    <th class="px-4 py-2 font-medium">Nama</th>
+                                    <th class="px-4 py-2 font-medium">No</th>
+                                    <th class="px-4 py-2 font-medium">Kelas</th>
+                                    <th class="px-4 py-2 font-medium">Skor Terbaik</th>
+                                    <th class="px-4 py-2 font-medium">Sisa Kesempatan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-student-list" class="divide-y divide-gray-100 bg-white">
+                                <!-- Rendered via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4 flex justify-end">
+                        <button onclick="app.clearStudentData()" class="text-xs text-red-500 hover:text-red-700 font-medium">Hapus Data Siswa</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Editor Soal -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b bg-gray-50 flex justify-between items-center">
+                    <h3 class="font-semibold text-lg">Editor Soal (40 Total)</h3>
+                    <div class="flex gap-2">
+                        <button onclick="app.renderAdminQuestions('mc')" id="btn-filter-mc" class="px-3 py-1 text-sm rounded bg-emerald-600 text-white font-medium filter-btn">Pilihan Ganda (20)</button>
+                        <button onclick="app.renderAdminQuestions('tf')" id="btn-filter-tf" class="px-3 py-1 text-sm rounded bg-gray-200 text-gray-700 hover:bg-gray-300 font-medium filter-btn">Benar/Salah (10)</button>
+                        <button onclick="app.renderAdminQuestions('matching')" id="btn-filter-matching" class="px-3 py-1 text-sm rounded bg-gray-200 text-gray-700 hover:bg-gray-300 font-medium filter-btn">Menjodohkan (10)</button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div id="admin-questions-container" class="space-y-6">
+                        <!-- Questions injected here -->
+                    </div>
+                    <button onclick="app.saveEditedQuestions()" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg transition shadow-md">Simpan Perubahan Soal</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Student Intro -->
+        <div id="view-student-intro" class="hidden max-w-2xl mx-auto mt-8">
+            <div class="bg-white rounded-2xl shadow-xl p-8 border-t-4 border-emerald-600 relative overflow-hidden">
+                <div class="absolute -right-10 -top-10 text-emerald-100 opacity-50">
+                    <svg class="w-40 h-40" fill="currentColor" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"></path></svg>
+                </div>
+                <div class="relative z-10">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">Welcome to Summative Assessment</h2>
+                    <p class="text-gray-600 mb-6 border-b pb-4">Mata Pelajaran: Biologi (Virus & Klasifikasi)</p>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="bg-gray-50 p-4 rounded-lg border">
+                            <p class="text-xs text-gray-500 font-semibold uppercase">Time Limit</p>
+                            <p class="text-xl font-bold text-gray-800">90 Minutes</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg border">
+                            <p class="text-xs text-gray-500 font-semibold uppercase">Passing Grade (KKM)</p>
+                            <p class="text-xl font-bold text-gray-800">78</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg border">
+                            <p class="text-xs text-gray-500 font-semibold uppercase">Total Questions</p>
+                            <p class="text-xl font-bold text-gray-800">40 Items</p>
+                        </div>
+                        <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-100">
+                            <p class="text-xs text-emerald-600 font-semibold uppercase">Attempts Remaining</p>
+                            <p id="student-attempts-display" class="text-xl font-bold text-emerald-800">-</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
+                        <h4 class="font-bold text-yellow-800 text-sm">Rules & Instructions:</h4>
+                        <ul class="list-disc pl-5 text-sm text-yellow-700 mt-2 space-y-1">
+                            <li>Ensure you have a stable connection.</li>
+                            <li>Do not refresh the page during the test, or you might lose progress.</li>
+                            <li>The test will automatically submit when the timer reaches zero.</li>
+                            <li>You are allowed a maximum of <strong>2 attempts</strong>.</li>
+                        </ul>
+                    </div>
+
+                    <button onclick="app.startTest()" id="btn-start-test" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl text-lg shadow-lg hover:shadow-xl transition transform hover:-translate-y-1">
+                        Start Assessment Now
+                    </button>
+                    <p id="msg-no-attempts" class="hidden text-center text-red-600 font-bold mt-4">You have exhausted all your attempts.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Test Active -->
+        <div id="view-test" class="hidden pb-20">
+            <!-- Sticky Timer Bar -->
+            <div class="sticky top-16 z-40 bg-white/90 backdrop-blur-md shadow-sm border-b py-3 px-4 rounded-b-xl mb-6 flex justify-between items-center">
+                <div>
+                    <div class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Time Remaining</div>
+                    <div id="timer-display" class="text-2xl font-bold font-mono text-gray-800">90:00</div>
+                </div>
+                <button onclick="app.confirmSubmit()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-bold shadow transition">Submit Assessment</button>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-6">
+                <!-- Question Navigator -->
+                <div class="w-full md:w-64 shrink-0">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border sticky top-40">
+                        <h3 class="font-bold text-gray-700 mb-3 text-sm uppercase">Navigation</h3>
+                        <div class="grid grid-cols-5 gap-2" id="question-navigator">
+                            <!-- Nav buttons injected here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Questions Area -->
+                <div class="flex-grow bg-white rounded-xl shadow-sm border p-6 md:p-10" id="test-questions-container">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Result -->
+        <div id="view-result" class="hidden max-w-3xl mx-auto mt-8">
+            <div id="print-area" class="bg-white rounded-2xl shadow-xl p-8 border-t-8 relative">
+                <!-- The top border color will be set dynamically based on pass/fail -->
+                
+                <div class="flex justify-between items-start border-b pb-6 mb-6">
+                    <div class="flex items-center gap-4">
+                        <img id="result-logo" src="" alt="Logo" class="h-16 w-16 object-contain">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900">Assessment Result</h2>
+                            <p class="text-gray-500">MA Mu'allimin NU</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm text-gray-500">Date</p>
+                        <p class="font-medium text-gray-800" id="result-date"></p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-y-4 gap-x-8 mb-8">
+                    <div><span class="text-gray-500 text-sm block">Name</span><strong id="res-name" class="text-lg"></strong></div>
+                    <div><span class="text-gray-500 text-sm block">Class / Presensi</span><strong id="res-class" class="text-lg"></strong></div>
+                    <div><span class="text-gray-500 text-sm block">Mata Pelajaran</span><strong class="text-lg">Biologi</strong></div>
+                    <div><span class="text-gray-500 text-sm block">Status</span><strong id="res-status" class="text-lg uppercase"></strong></div>
+                </div>
+
+                <div class="bg-gray-50 rounded-xl p-8 text-center border">
+                    <p class="text-gray-500 font-semibold mb-2">FINAL SCORE</p>
+                    <div class="flex justify-center items-end gap-2">
+                        <span id="res-score" class="text-7xl font-black text-gray-900 tracking-tighter"></span>
+                        <span class="text-2xl font-bold text-gray-400 mb-2">/ 100</span>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-4" id="res-detail">Correct: 0 | Incorrect: 0</p>
+                </div>
+                
+                <div class="mt-8 text-center text-sm text-gray-400">
+                    <p>Generated by Summative Assessment System</p>
+                    <p>Instructor: HM. Wafi</p>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-center gap-4 no-print">
+                <button onclick="window.print()" class="bg-gray-800 hover:bg-gray-900 text-white px-6 py-3 rounded-lg font-medium shadow-md transition flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2-2v4h10z"></path></svg>
+                    Download / Cetak Hasil
+                </button>
+                <button onclick="app.showView('student-intro')" id="btn-back-intro" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 px-6 py-3 rounded-lg font-medium transition">
+                    Kembali ke Beranda
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal Konfirmasi -->
+    <div id="confirm-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full mx-4 modal-enter">
+            <h3 class="text-lg font-bold text-gray-900 mb-2" id="confirm-title">Confirm</h3>
+            <p class="text-gray-600 mb-6" id="confirm-text">Are you sure?</p>
+            <div class="flex justify-end gap-3">
+                <button onclick="app.closeConfirm()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 font-medium">Cancel</button>
+                <button id="confirm-action-btn" class="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 font-medium">Yes, Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. DEFAULT DATA GENERATION ---
+        const initialData = {
+            settings: {
+                kkm: 78,
+                timeLimit: 90, // minutes
+                logo: 'https://placehold.co/100x100/ffffff/047857?text=NU',
+                adminPassword: 'admin'
+            },
+            students: {}, // { 'Name_Class_No': { attempts: 0, bestScore: 0 } }
+            // Soal Biologi kontekstual mengenai Virus dan Klasifikasi Makhluk Hidup
+            questions: [
+                // MULTIPLE CHOICE (20 items)
+                { id: 'mc1', type: 'mc', section: 'Pilihan Ganda', text: 'Seorang petani mengamati daun tembakaunya muncul bercak-bercak kuning (mosaik). Setelah diteliti, agen penyebarnya dapat mengkristal dan hanya memiliki RNA. Berdasarkan karakteristik tersebut, patogen ini tergolong...', options: { a: 'Bakteri', b: 'Jamur', c: 'Virus', d: 'Protozoa' }, answer: 'c' },
+                { id: 'mc2', type: 'mc', section: 'Pilihan Ganda', text: 'Dalam pengamatan mikroskop elektron, terlihat patogen menempel pada bakteri dan menyuntikkan materi genetiknya. Pada akhir fase, bakteri tersebut hancur dan melepaskan partikel baru. Tahapan pecahnya sel inang ini disebut...', options: { a: 'Adsorpsi', b: 'Penetrasi', c: 'Sintesis', d: 'Lisis' }, answer: 'd' },
+                { id: 'mc3', type: 'mc', section: 'Pilihan Ganda', text: 'Seorang pasien didiagnosis HIV positif. Virus ini masuk kategori retrovirus, artinya ia harus melakukan suatu proses sebelum bergabung dengan materi genetik sel darah putih inang, yaitu...', options: { a: 'Translasi DNA ke protein', b: 'Transkripsi balik RNA menjadi DNA', c: 'Replikasi RNA secara langsung', d: 'Transkripsi DNA menjadi RNA' }, answer: 'b' },
+                { id: 'mc4', type: 'mc', section: 'Pilihan Ganda', text: 'Sampel air dari sungai diuji di laboratorium dan ditemukan partikel yang tidak dapat bereproduksi saat diletakkan di medium agar biasa, tetapi aktif membelah saat dimasukkan ke dalam embrio telur hidup. Hal ini membuktikan bahwa...', options: { a: 'Partikel tersebut bernapas dengan oksigen', b: 'Partikel adalah parasit intraseluler obligat', c: 'Partikel memakan membran sel telur', d: 'Partikel memiliki ribosom sendiri' }, answer: 'b' },
+                { id: 'mc5', type: 'mc', section: 'Pilihan Ganda', text: 'Saat mempelajari struktur virus SARS-CoV-2, peneliti menemukan cangkang protein utama yang melindungi materi genetiknya. Cangkang protein ini dinamakan...', options: { a: 'Kapsul', b: 'Selubung (Envelope)', c: 'Kapsid', d: 'Nukleoid' }, answer: 'c' },
+                { id: 'mc6', type: 'mc', section: 'Pilihan Ganda', text: 'Beberapa orang di lingkungan padat penduduk mengalami demam tinggi dan ruam. Dokter menyatakan mereka terinfeksi virus yang ditularkan melalui vektor nyamuk Aedes aegypti. Penyakit yang dimaksud adalah...', options: { a: 'Influenza', b: 'Rabies', c: 'Tetanus', d: 'Demam Berdarah Dengue' }, answer: 'd' },
+                { id: 'mc7', type: 'mc', section: 'Pilihan Ganda', text: 'Pada daur tertentu, materi genetik bakteriofag tidak langsung menghancurkan sel bakteri inang, melainkan menyisip ke dalam kromosom bakteri. DNA virus yang menyisip ini dikenal sebagai...', options: { a: 'Profag', b: 'Virion', c: 'Prion', d: 'Viroid' }, answer: 'a' },
+                { id: 'mc8', type: 'mc', section: 'Pilihan Ganda', text: 'Dokter tidak memberikan antibiotik kepada pasien yang sakit flu biasa. Alasan biologis yang paling tepat mengenai tindakan dokter tersebut adalah...', options: { a: 'Antibiotik akan membuat tubuh kebal terhadap flu', b: 'Flu disebabkan virus yang tidak memiliki dinding sel sasaran antibiotik', c: 'Antibiotik hanya bekerja mematikan sel darah putih', d: 'Flu dapat sembuh jika meminum air yang banyak saja' }, answer: 'b' },
+                { id: 'mc9', type: 'mc', section: 'Pilihan Ganda', text: 'Budi mendapatkan vaksinasi polio saat masih balita. Tujuan utama memasukkan vaksin (virus yang dilemahkan) ke dalam tubuh Budi adalah untuk...', options: { a: 'Membunuh virus lain yang ada di darah', b: 'Merangsang sistem imun membentuk antibodi', c: 'Memicu mutasi genetik pada tubuh Budi', d: 'Menggantikan fungsi sel darah merah' }, answer: 'b' },
+                { id: 'mc10', type: 'mc', section: 'Pilihan Ganda', text: 'Seorang ahli ekologi hutan menemukan spesies kucing hutan jenis baru. Untuk memberinya nama ilmiah secara sah, ia menggunakan sistem tata nama binomial nomenklatur yang diciptakan oleh...', options: { a: 'Charles Darwin', b: 'Gregor Mendel', c: 'Carolus Linnaeus', d: 'Louis Pasteur' }, answer: 'c' },
+                { id: 'mc11', type: 'mc', section: 'Pilihan Ganda', text: 'Di sebatang pohon yang tumbang, ditemukan organisme berspora, tidak memiliki klorofil, tubuh tersusun atas hifa, dan mengambil nutrisi secara heterotrof. Organisme ini diklasifikasikan ke dalam Kingdom...', options: { a: 'Plantae', b: 'Animalia', c: 'Fungi', d: 'Protista' }, answer: 'c' },
+                { id: 'mc12', type: 'mc', section: 'Pilihan Ganda', text: 'Padi memiliki nama ilmiah Oryza sativa. Sementara gandum adalah Triticum aestivum. Jika kedua tumbuhan ini diurutkan hierarki klasifikasinya, mereka berada pada...', options: { a: 'Spesies sama, genus beda', b: 'Genus beda, famili sama (Poaceae)', c: 'Ordo beda, kelas sama', d: 'Kingdom beda' }, answer: 'b' },
+                { id: 'mc13', type: 'mc', section: 'Pilihan Ganda', text: 'Saat mendata keanekaragaman hayati Taman Nasional, petugas mencatat berbagai takson. Takson manakah yang memiliki jumlah organisme paling banyak namun persamaan cirinya paling sedikit?', options: { a: 'Kelas', b: 'Ordo', c: 'Filum/Divisio', d: 'Genus' }, answer: 'c' },
+                { id: 'mc14', type: 'mc', section: 'Pilihan Ganda', text: 'Pemeriksaan mikroskopis pada lumpur rawa menunjukkan organisme uniseluler tanpa membran inti sel (prokariotik). Organisme ini dipastikan masuk ke dalam kelompok...', options: { a: 'Eukarya', b: 'Monera (Archaea/Eubacteria)', c: 'Protista', d: 'Fungi' }, answer: 'b' },
+                { id: 'mc15', type: 'mc', section: 'Pilihan Ganda', text: 'Kladogram disusun untuk melihat jauh dekatnya hubungan kekerabatan. Kladogram pada vertebrata modern dibangun berdasarkan pertimbangan...', options: { a: 'Persamaan lingkungan tempat tinggal', b: 'Karakter atau ciri turunan (shared derived characters)', c: 'Pola makan sehari-hari', d: 'Ukurah tubuh organisme' }, answer: 'b' },
+                { id: 'mc16', type: 'mc', section: 'Pilihan Ganda', text: 'Amoeba, Paramecium, dan Euglena sering diteliti siswa dengan air rendaman jerami. Ketiga organisme ini merupakan kelompok eukariotik bersel tunggal yang tergolong dalam Kingdom...', options: { a: 'Fungi', b: 'Plantae', c: 'Animalia', d: 'Protista' }, answer: 'd' },
+                { id: 'mc17', type: 'mc', section: 'Pilihan Ganda', text: 'Jika peneliti menemukan bakteri ekstrem di kawah gunung berapi bersuhu sangat tinggi, bakteri ini paling tepat dimasukkan ke dalam kelompok...', options: { a: 'Metanogen', b: 'Halofil', c: 'Termofil/Termoasidofil', d: 'Sianobakteri' }, answer: 'c' },
+                { id: 'mc18', type: 'mc', section: 'Pilihan Ganda', text: 'Tumbuhan lumut dan paku diamati saat kegiatan outbond. Ciri utama yang membedakan organisme Plantae dengan Animalia secara mendasar adalah ketersediaan...', options: { a: 'Mitokondria dan membran sel', b: 'Dinding sel selulosa dan kloroplas', c: 'Kemampuan bergerak bebas', d: 'Cara bernapas dengan paru-paru' }, answer: 'b' },
+                { id: 'mc19', type: 'mc', section: 'Pilihan Ganda', text: 'Kuda (Equus caballus) dan keledai (Equus asinus) memiliki nama depan yang sama. Hal ini menunjukkan bahwa keduanya berada pada tingkat takson yang sama yaitu...', options: { a: 'Spesies', b: 'Genus', c: 'Famili', d: 'Ordo' }, answer: 'b' },
+                { id: 'mc20', type: 'mc', section: 'Pilihan Ganda', text: 'Paus diklasifikasikan sebagai Mamalia, bukan Pisces (ikan), meskipun hidup di air. Dasar klasifikasi yang paling kuat adalah karena paus...', options: { a: 'Mempunyai sirip yang besar', b: 'Menyusui anaknya dan bernapas dengan paru-paru', c: 'Bergerak lincah di kedalaman laut', d: 'Memakan plankton kecil' }, answer: 'b' },
+
+                // TRUE/FALSE (10 items)
+                { id: 'tf1', type: 'tf', section: 'Benar atau Salah', text: 'Virus tidak dapat diklasifikasikan ke dalam 5 Kingdom makhluk hidup karena struktur tubuhnya aseluler (tidak berupa sel).', answer: 'true' },
+                { id: 'tf2', type: 'tf', section: 'Benar atau Salah', text: 'Semua jenis virus selalu memiliki DNA dan RNA secara bersamaan di dalam kapsidnya.', answer: 'false' },
+                { id: 'tf3', type: 'tf', section: 'Benar atau Salah', text: 'Interferon adalah protein alami tubuh manusia yang merespons dan menghambat replikasi virus.', answer: 'true' },
+                { id: 'tf4', type: 'tf', section: 'Benar atau Salah', text: 'Pada sistem tata nama binomial, kata pertama menunjukkan genus dan kata kedua harus ditulis dengan huruf kapital di awal.', answer: 'false' },
+                { id: 'tf5', type: 'tf', section: 'Benar atau Salah', text: 'Euglena merupakan organisme unik yang dapat diklasifikasikan sebagai Protista mirip tumbuhan maupun mirip hewan bergantung kondisi lingkungannya.', answer: 'true' },
+                { id: 'tf6', type: 'tf', section: 'Benar atau Salah', text: 'Spesies adalah kelompok organisme yang mampu melakukan perkawinan silang dan menghasilkan keturunan yang fertil (subur).', answer: 'true' },
+                { id: 'tf7', type: 'tf', section: 'Benar atau Salah', text: 'Viroid adalah partikel penginfeksi yang ukurannya lebih besar dari virus dan biasa menyerang hewan.', answer: 'false' },
+                { id: 'tf8', type: 'tf', section: 'Benar atau Salah', text: 'Sistem klasifikasi 3 Domain memisahkan organisme prokariotik menjadi dua kelompok berbeda, yaitu Archaea dan Bacteria.', answer: 'true' },
+                { id: 'tf9', type: 'tf', section: 'Benar atau Salah', text: 'Daur lisogenik pada infeksi bakteriofag akan selalu menyebabkan bakteri inang segera hancur dan mati seketika.', answer: 'false' },
+                { id: 'tf10', type: 'tf', section: 'Benar atau Salah', text: 'Hewan spons (Porifera) tidak memiliki jaringan sejati, namun tetap diklasifikasikan ke dalam Kingdom Animalia.', answer: 'true' },
+
+                // MATCHING (10 items)
+                { id: 'm1', type: 'matching', section: 'Menjodohkan', text: 'Pilih istilah yang tepat: Enzim pembantu pada HIV untuk mensintesis DNA dari cetakan RNA.', options: ['Reverse Transcriptase', 'Lisogenik', 'Kapsid', 'Carolus Linnaeus', 'Binomial Nomenklatur', 'Protista', 'Rabies', 'Taksonomi', 'Kunci Dikotomi', 'Bakteriofag'], answer: 'Reverse Transcriptase' },
+                { id: 'm2', type: 'matching', section: 'Menjodohkan', text: 'Pilih istilah yang tepat: Istilah siklus reproduksi virus di mana genomnya bersembunyi dalam kromosom bakteri.', options: ['Reverse Transcriptase', 'Lisogenik', 'Kapsid', 'Carolus Linnaeus', 'Binomial Nomenklatur', 'Protista', 'Rabies', 'Taksonomi', 'Kunci Dikotomi', 'Bakteriofag'], answer: 'Lisogenik' },
+                { id: 'm3', type: 'matching', section: 'Menjodohkan', text: 'Pilih istilah yang tepat: Bagian protein terluar dari virus yang membungkus materi genetik.', options: ['Reverse Transcriptase', 'Lisogenik', 'Kapsid', 'Carolus Linnaeus', 'Binomial Nomenklatur', 'Protista', 'Rabies', 'Taksonomi', 'Kunci Dikotomi', 'Bakteriofag'], answer: 'Kapsid' },
+                { id: 'm4', type: 'matching', section: 'Menjodohkan', text: 'Pilih istilah yang tepat: Ilmuwan yang mencetuskan sistem klasifikasi hierarki dan tata nama ganda modern.', options: ['Reverse Transcriptase', 'Lisogenik', 'Kapsid', 'Carolus Linnaeus', 'Binomial Nomenklatur', 'Protista', 'Rabies', 'Taksonomi', 'Kunci Dikotomi', 'Bakteriofag'], answer: 'Carolus Linnaeus' },
+                { id: 'm5', type: 'matching', section: 'Menjodohkan', text: 'Pilih istilah yang tepat: Aturan baku secara internasional untuk penulisan dua kata pada nama ilmiah organisme.', options: ['Reverse Transcriptase', 'Lisogenik', 'Kapsid', 'Carolus Linnaeus', 'Binomial Nomenklatur', 'Protista', 'Rabies', 'Taksonomi', 'Kunci Dikotomi', 'Bakteriofag'], answer: 'Binomial Nomenklatur' },
+                { id: 'm6', type: 'matching', section: 'Menjodohkan', text: 'Pilih istilah yang tepat: Kingdom yang mewadahi organisme eukariotik bersel satu seperti Paramecium.', options: ['Reverse Transcriptase', 'Lisogenik', 'Kapsid', 'Carolus Linnaeus', 'Binomial Nomenklatur', 'Protista', 'Rabies', 'Taksonomi', 'Kunci Dikotomi', 'Bakteriofag'], answer: 'Protista' },
+                { id: 'm7', type: 'matching', section: 'Menjodohkan', text: 'Pilih istilah yang tepat: Penyakit mematikan pada hewan (seperti anjing/kucing) yang disebabkan oleh Rhabdovirus.', options: ['Reverse Transcriptase', 'Lisogenik', 'Kapsid', 'Carolus Linnaeus', 'Binomial Nomenklatur', 'Protista', 'Rabies', 'Taksonomi', 'Kunci Dikotomi', 'Bakteriofag'], answer: 'Rabies' },
+                { id: 'm8', type: 'matching', section: 'Menjodohkan', text: 'Pilih istilah yang tepat: Cabang ilmu Biologi yang secara khusus mempelajari tentang pengelompokan makhluk hidup.', options: ['Reverse Transcriptase', 'Lisogenik', 'Kapsid', 'Carolus Linnaeus', 'Binomial Nomenklatur', 'Protista', 'Rabies', 'Taksonomi', 'Kunci Dikotomi', 'Bakteriofag'], answer: 'Taksonomi' },
+                { id: 'm9', type: 'matching', section: 'Menjodohkan', text: 'Pilih istilah yang tepat: Alat bantu berupa sederet pernyataan berlawanan untuk mengidentifikasi takson organisme.', options: ['Reverse Transcriptase', 'Lisogenik', 'Kapsid', 'Carolus Linnaeus', 'Binomial Nomenklatur', 'Protista', 'Rabies', 'Taksonomi', 'Kunci Dikotomi', 'Bakteriofag'], answer: 'Kunci Dikotomi' },
+                { id: 'm10', type: 'matching', section: 'Menjodohkan', text: 'Pilih istilah yang tepat: Jenis virus yang dapat menempel dan menghancurkan sel bakteri seperti Escherichia coli.', options: ['Reverse Transcriptase', 'Lisogenik', 'Kapsid', 'Carolus Linnaeus', 'Binomial Nomenklatur', 'Protista', 'Rabies', 'Taksonomi', 'Kunci Dikotomi', 'Bakteriofag'], answer: 'Bakteriofag' }
+            ]
+        };
+
+        // --- STREAMING_CHUNK: Main Application Logic ---
+        const app = {
+            state: {
+                currentUser: null, // { role: 'admin'|'student', name, class, presensi }
+                settings: {},
+                questions: [],
+                students: {},
+                studentAnswers: {}, // { qId: answer }
+                timeRemaining: 0,
+                timerInterval: null,
+                isTestActive: false,
+                testMode: false // true if admin is testing
+            },
+
+            init() {
+                // Load from local storage or use defaults
+                const storedData = localStorage.getItem('assesment_app_data');
+                if (storedData) {
+                    const parsed = JSON.parse(storedData);
+                    this.state.settings = parsed.settings;
+                    this.state.questions = parsed.questions;
+                    this.state.students = parsed.students || {};
+                } else {
+                    this.state.settings = initialData.settings;
+                    this.state.questions = initialData.questions;
+                    this.state.students = initialData.students;
+                    this.saveData();
+                }
+
+                // Apply initial settings
+                document.getElementById('nav-logo').src = this.state.settings.logo;
+                
+                // Session Check
+                const session = sessionStorage.getItem('assesment_session');
+                if (session) {
+                    this.state.currentUser = JSON.parse(session);
+                    this.routeUser();
+                } else {
+                    this.showView('login');
+                }
+            },
+
+            saveData() {
+                const dataToSave = {
+                    settings: this.state.settings,
+                    questions: this.state.questions,
+                    students: this.state.students
+                };
+                localStorage.setItem('assesment_app_data', JSON.stringify(dataToSave));
+            },
+
+            showToast(msg, type = 'info') {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                const colors = {
+                    success: 'bg-emerald-600',
+                    error: 'bg-red-600',
+                    info: 'bg-blue-600'
+                };
+                toast.className = `${colors[type]} text-white px-4 py-2 rounded shadow-lg text-sm modal-enter flex items-center gap-2`;
+                toast.innerHTML = msg;
+                container.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 200);
+                }, 3000);
+            },
+
+            customConfirm(title, text, onConfirm) {
+                document.getElementById('confirm-title').innerText = title;
+                document.getElementById('confirm-text').innerText = text;
+                const modal = document.getElementById('confirm-modal');
+                const btn = document.getElementById('confirm-action-btn');
+                
+                modal.classList.remove('hidden');
+                
+                btn.onclick = () => {
+                    modal.classList.add('hidden');
+                    onConfirm();
+                };
+            },
+
+            closeConfirm() {
+                document.getElementById('confirm-modal').classList.add('hidden');
+            },
+
+            showView(viewName) {
+                ['view-login', 'view-admin', 'view-student-intro', 'view-test', 'view-result'].forEach(v => {
+                    document.getElementById(v).classList.add('hidden');
+                });
+                document.getElementById(`view-${viewName}`).classList.remove('hidden');
+                window.scrollTo(0,0);
+            },
+
+            // --- STREAMING_CHUNK: Authentication ---
+            switchLoginTab(tab) {
+                if(tab === 'student') {
+                    document.getElementById('form-login-student').classList.remove('hidden');
+                    document.getElementById('form-login-admin').classList.add('hidden');
+                    document.getElementById('tab-student').className = "flex-1 py-2 font-medium text-emerald-600 border-b-2 border-emerald-600";
+                    document.getElementById('tab-admin').className = "flex-1 py-2 font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700";
+                } else {
+                    document.getElementById('form-login-student').classList.add('hidden');
+                    document.getElementById('form-login-admin').classList.remove('hidden');
+                    document.getElementById('tab-admin').className = "flex-1 py-2 font-medium text-emerald-600 border-b-2 border-emerald-600";
+                    document.getElementById('tab-student').className = "flex-1 py-2 font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700";
+                }
+            },
+
+            loginAdmin(e) {
+                e.preventDefault();
+                const user = document.getElementById('login-admin-username').value;
+                const pass = document.getElementById('login-admin-password').value;
+                if (user === 'admin' && pass === this.state.settings.adminPassword) {
+                    this.state.currentUser = { role: 'admin', name: 'Administrator' };
+                    sessionStorage.setItem('assesment_session', JSON.stringify(this.state.currentUser));
+                    this.routeUser();
+                    this.showToast('Login berhasil', 'success');
+                } else {
+                    this.showToast('Username atau password salah', 'error');
+                }
+            },
+
+            loginStudent(e) {
+                e.preventDefault();
+                const name = document.getElementById('login-student-name').value.trim();
+                const cls = document.getElementById('login-student-class').value;
+                const presensi = document.getElementById('login-student-presensi').value.trim();
+
+                if(!name || !presensi) {
+                    this.showToast('Harap lengkapi data', 'error'); return;
+                }
+
+                this.state.currentUser = { role: 'student', name, class: cls, presensi };
+                sessionStorage.setItem('assesment_session', JSON.stringify(this.state.currentUser));
+                this.routeUser();
+            },
+
+            logout() {
+                if(this.state.isTestActive && this.state.currentUser.role === 'student' && !this.state.testMode) {
+                    this.showToast('Selesaikan tes terlebih dahulu!', 'error');
+                    return;
+                }
+                sessionStorage.removeItem('assesment_session');
+                this.state.currentUser = null;
+                this.state.testMode = false;
+                document.getElementById('nav-user-info').classList.add('hidden');
+                
+                // reset forms
+                document.getElementById('form-login-student').reset();
+                document.getElementById('form-login-admin').reset();
+                
+                this.switchLoginTab('student');
+                this.showView('login');
+            },
+
+            routeUser() {
+                const navInfo = document.getElementById('nav-user-info');
+                const navName = document.getElementById('nav-username');
+                navInfo.classList.remove('hidden');
+                
+                if (this.state.currentUser.role === 'admin') {
+                    navName.innerText = 'Admin Panel';
+                    this.initAdminDashboard();
+                    this.showView('admin');
+                } else {
+                    navName.innerText = `${this.state.currentUser.name} (No.${this.state.currentUser.presensi})`;
+                    this.initStudentIntro();
+                    this.showView('student-intro');
+                }
+            },
+
+            // --- STREAMING_CHUNK: Admin Functionality ---
+            initAdminDashboard() {
+                document.getElementById('admin-logo-url').value = this.state.settings.logo;
+                this.renderAdminStudentList();
+                this.renderAdminQuestions('mc');
+            },
+
+            saveSettings(e) {
+                e.preventDefault();
+                const newLogo = document.getElementById('admin-logo-url').value;
+                const newPass = document.getElementById('admin-new-password').value;
+                
+                if(newLogo) {
+                    this.state.settings.logo = newLogo;
+                    document.getElementById('nav-logo').src = newLogo;
+                }
+                if(newPass) {
+                    this.state.settings.adminPassword = newPass;
+                    document.getElementById('admin-new-password').value = '';
+                }
+                this.saveData();
+                this.showToast('Pengaturan disimpan', 'success');
+            },
+
+            renderAdminStudentList() {
+                const tbody = document.getElementById('admin-student-list');
+                tbody.innerHTML = '';
+                const students = this.state.students;
+                let count = 0;
+                for (const key in students) {
+                    const data = students[key];
+                    const tr = document.createElement('tr');
+                    const attemptsLeft = Math.max(0, 2 - data.attempts);
+                    tr.innerHTML = `
+                        <td class="px-4 py-2 border-b">${data.name}</td>
+                        <td class="px-4 py-2 border-b text-center">${data.presensi}</td>
+                        <td class="px-4 py-2 border-b text-center">${data.class}</td>
+                        <td class="px-4 py-2 border-b text-center font-bold">${data.bestScore}</td>
+                        <td class="px-4 py-2 border-b text-center">
+                            <span class="${attemptsLeft === 0 ? 'text-red-500 font-bold' : 'text-emerald-600'}">${attemptsLeft}/2</span>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                    count++;
+                }
+                if (count === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-4 text-center text-gray-400">Belum ada data siswa yang mengerjakan.</td></tr>';
+                }
+            },
+
+            clearStudentData() {
+                this.customConfirm("Hapus Data", "Yakin ingin menghapus semua rekam nilai siswa?", () => {
+                    this.state.students = {};
+                    this.saveData();
+                    this.renderAdminStudentList();
+                    this.showToast('Data siswa dibersihkan', 'success');
+                });
+            },
+
+            renderAdminQuestions(filterType) {
+                // Update tabs UI
+                document.querySelectorAll('.filter-btn').forEach(b => {
+                    b.classList.remove('bg-emerald-600', 'text-white');
+                    b.classList.add('bg-gray-200', 'text-gray-700');
+                });
+                document.getElementById(`btn-filter-${filterType}`).classList.add('bg-emerald-600', 'text-white');
+                document.getElementById(`btn-filter-${filterType}`).classList.remove('bg-gray-200', 'text-gray-700');
+
+                const container = document.getElementById('admin-questions-container');
+                container.innerHTML = '';
+
+                const filtered = this.state.questions.filter(q => q.type === filterType);
+                
+                filtered.forEach((q, index) => {
+                    const qDiv = document.createElement('div');
+                    qDiv.className = 'bg-white p-4 rounded border shadow-sm relative';
+                    
+                    let innerHTML = `
+                        <div class="mb-3">
+                            <label class="block text-xs font-bold text-gray-500 mb-1">Soal ${index + 1} (${q.id})</label>
+                            <textarea class="w-full border rounded p-2 text-sm focus:ring-emerald-500 q-edit-text" data-id="${q.id}" rows="2">${q.text}</textarea>
+                        </div>
+                    `;
+
+                    if (q.type === 'mc') {
+                        innerHTML += `<div class="grid grid-cols-2 gap-2 mb-3">`;
+                        ['a', 'b', 'c', 'd'].forEach(opt => {
+                            const isAns = q.answer === opt;
+                            innerHTML += `
+                                <div class="flex items-center gap-2">
+                                    <input type="radio" name="ans_${q.id}" value="${opt}" ${isAns ? 'checked' : ''} class="q-edit-mc-ans">
+                                    <span class="text-sm font-bold uppercase">${opt}</span>
+                                    <input type="text" class="flex-grow border rounded p-1 text-sm q-edit-opt" data-id="${q.id}" data-opt="${opt}" value="${q.options[opt]}">
+                                </div>
+                            `;
+                        });
+                        innerHTML += `</div>`;
+                    } else if (q.type === 'tf') {
+                        innerHTML += `
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-1 text-sm"><input type="radio" name="ans_${q.id}" value="true" ${q.answer === 'true' ? 'checked' : ''} class="q-edit-tf-ans"> BENAR</label>
+                                <label class="flex items-center gap-1 text-sm"><input type="radio" name="ans_${q.id}" value="false" ${q.answer === 'false' ? 'checked' : ''} class="q-edit-tf-ans"> SALAH</label>
+                            </div>
+                        `;
+                    } else if (q.type === 'matching') {
+                        innerHTML += `
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 mb-1">Jawaban Benar (Pilih dari daftar opsi)</label>
+                                <select class="w-full border rounded p-2 text-sm q-edit-match-ans" data-id="${q.id}">
+                                    ${q.options.map(o => `<option value="${o}" ${q.answer === o ? 'selected' : ''}>${o}</option>`).join('')}
+                                </select>
+                            </div>
+                        `;
+                    }
+                    qDiv.innerHTML = innerHTML;
+                    container.appendChild(qDiv);
+                });
+            },
+
+            saveEditedQuestions() {
+                const container = document.getElementById('admin-questions-container');
+                let updatedCount = 0;
+
+                // Update text
+                container.querySelectorAll('.q-edit-text').forEach(ta => {
+                    const id = ta.getAttribute('data-id');
+                    const q = this.state.questions.find(x => x.id === id);
+                    if(q) q.text = ta.value;
+                });
+
+                // Update MC options and answers
+                container.querySelectorAll('.q-edit-opt').forEach(inp => {
+                    const id = inp.getAttribute('data-id');
+                    const opt = inp.getAttribute('data-opt');
+                    const q = this.state.questions.find(x => x.id === id);
+                    if(q && q.type === 'mc') q.options[opt] = inp.value;
+                });
+                
+                this.state.questions.filter(q => q.type === 'mc').forEach(q => {
+                    const checked = container.querySelector(`input[name="ans_${q.id}"]:checked`);
+                    if(checked) q.answer = checked.value;
+                });
+
+                // Update TF answers
+                this.state.questions.filter(q => q.type === 'tf').forEach(q => {
+                    const checked = container.querySelector(`input[name="ans_${q.id}"]:checked`);
+                    if(checked) q.answer = checked.value;
+                });
+
+                // Update Matching answers
+                container.querySelectorAll('.q-edit-match-ans').forEach(sel => {
+                    const id = sel.getAttribute('data-id');
+                    const q = this.state.questions.find(x => x.id === id);
+                    if(q) q.answer = sel.value;
+                });
+
+                this.saveData();
+                this.showToast('Perubahan soal berhasil disimpan!', 'success');
+            },
+
+            startTestAsStudent() {
+                this.state.testMode = true; // Flag to not save results
+                this.initStudentIntro();
+                this.showView('student-intro');
+                this.showToast('Mode Uji Coba: Hasil tidak akan disimpan.', 'info');
+            },
+
+
+            // --- STREAMING_CHUNK: Student Test Logic ---
+            getStudentKey() {
+                if(!this.state.currentUser || this.state.currentUser.role !== 'student') return 'test_mode';
+                return `${this.state.currentUser.name}_${this.state.currentUser.class}_${this.state.currentUser.presensi}`;
+            },
+
+            initStudentIntro() {
+                const key = this.getStudentKey();
+                const btnStart = document.getElementById('btn-start-test');
+                const msgNo = document.getElementById('msg-no-attempts');
+                const displayAttempts = document.getElementById('student-attempts-display');
+                
+                if (this.state.testMode) {
+                    displayAttempts.innerText = 'Unlimited (Admin Mode)';
+                    btnStart.classList.remove('hidden');
+                    msgNo.classList.add('hidden');
+                    return;
+                }
+
+                if (!this.state.students[key]) {
+                    this.state.students[key] = { 
+                        name: this.state.currentUser.name, 
+                        class: this.state.currentUser.class,
+                        presensi: this.state.currentUser.presensi,
+                        attempts: 0, 
+                        bestScore: 0 
+                    };
+                    this.saveData();
+                }
+
+                const attemptsDone = this.state.students[key].attempts;
+                const attemptsLeft = Math.max(0, 2 - attemptsDone);
+                
+                displayAttempts.innerText = attemptsLeft;
+
+                if (attemptsLeft <= 0) {
+                    btnStart.classList.add('hidden');
+                    msgNo.classList.remove('hidden');
+                } else {
+                    btnStart.classList.remove('hidden');
+                    msgNo.classList.add('hidden');
+                }
+            },
+
+            startTest() {
+                const key = this.getStudentKey();
+                if (!this.state.testMode && this.state.students[key].attempts >= 2) {
+                    this.showToast('Batas pengerjaan habis.', 'error');
+                    return;
+                }
+
+                this.state.isTestActive = true;
+                this.state.studentAnswers = {};
+                this.state.timeRemaining = this.state.settings.timeLimit * 60; // seconds
+                
+                this.renderTestView();
+                this.showView('test');
+                this.startTimer();
+                window.scrollTo(0,0);
+            },
+
+            renderTestView() {
+                const container = document.getElementById('test-questions-container');
+                const nav = document.getElementById('question-navigator');
+                container.innerHTML = '';
+                nav.innerHTML = '';
+
+                let currentSection = '';
+
+                this.state.questions.forEach((q, index) => {
+                    const qNum = index + 1;
+                    
+                    // Render Navigator Button
+                    const navBtn = document.createElement('button');
+                    navBtn.id = `nav-btn-${q.id}`;
+                    navBtn.className = 'w-full aspect-square flex items-center justify-center rounded border border-gray-300 text-sm font-medium text-gray-600 hover:bg-gray-100 transition';
+                    navBtn.innerText = qNum;
+                    navBtn.onclick = () => {
+                        document.getElementById(`q-container-${q.id}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    };
+                    nav.appendChild(navBtn);
+
+                    // Render Section Header if changed
+                    if (q.section !== currentSection) {
+                        currentSection = q.section;
+                        const secHeader = document.createElement('div');
+                        secHeader.className = 'col-span-full border-b-2 border-emerald-600 pb-2 mb-6 mt-8 first:mt-0';
+                        secHeader.innerHTML = `<h3 class="text-xl font-bold text-gray-800">${currentSection}</h3>`;
+                        container.appendChild(secHeader);
+                    }
+
+                    // Render Question Box
+                    const qDiv = document.createElement('div');
+                    qDiv.id = `q-container-${q.id}`;
+                    qDiv.className = 'mb-8 pb-8 border-b border-gray-100 last:border-0';
+                    
+                    let html = `
+                        <div class="flex gap-4">
+                            <div class="w-8 h-8 shrink-0 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center font-bold text-sm">${qNum}</div>
+                            <div class="flex-grow text-gray-800 text-base leading-relaxed">
+                                <p class="mb-4">${q.text}</p>
+                    `;
+
+                    if (q.type === 'mc') {
+                        html += `<div class="space-y-2">`;
+                        ['a', 'b', 'c', 'd'].forEach(opt => {
+                            html += `
+                                <label class="flex items-start gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition">
+                                    <input type="radio" name="ans_${q.id}" value="${opt}" onchange="app.markAnswered('${q.id}', this.value)" class="mt-1 text-emerald-600 focus:ring-emerald-500">
+                                    <span class="font-bold text-gray-500 uppercase">${opt}.</span>
+                                    <span>${q.options[opt]}</span>
+                                </label>
+                            `;
+                        });
+                        html += `</div>`;
+                    } else if (q.type === 'tf') {
+                        html += `
+                            <div class="flex gap-4">
+                                <label class="flex-1 flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition">
+                                    <input type="radio" name="ans_${q.id}" value="true" onchange="app.markAnswered('${q.id}', this.value)" class="text-emerald-600 focus:ring-emerald-500">
+                                    <span class="font-bold">BENAR</span>
+                                </label>
+                                <label class="flex-1 flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition">
+                                    <input type="radio" name="ans_${q.id}" value="false" onchange="app.markAnswered('${q.id}', this.value)" class="text-emerald-600 focus:ring-emerald-500">
+                                    <span class="font-bold">SALAH</span>
+                                </label>
+                            </div>
+                        `;
+                    } else if (q.type === 'matching') {
+                        // Shuffle options for matching
+                        const shuffledOpts = [...q.options].sort(() => Math.random() - 0.5);
+                        html += `
+                            <div class="mt-2">
+                                <select onchange="app.markAnswered('${q.id}', this.value)" class="w-full max-w-md p-3 border border-gray-300 rounded-lg bg-gray-50 focus:ring-emerald-500 focus:border-emerald-500">
+                                    <option value="" disabled selected>-- Select matching term --</option>
+                                    ${shuffledOpts.map(o => `<option value="${o}">${o}</option>`).join('')}
+                                </select>
+                            </div>
+                        `;
+                    }
+
+                    html += `</div></div>`;
+                    qDiv.innerHTML = html;
+                    container.appendChild(qDiv);
+                });
+            },
+
+            markAnswered(qId, value) {
+                this.state.studentAnswers[qId] = value;
+                const navBtn = document.getElementById(`nav-btn-${qId}`);
+                if (navBtn) {
+                    navBtn.classList.remove('border-gray-300', 'text-gray-600');
+                    navBtn.classList.add('bg-emerald-600', 'text-white', 'border-emerald-600');
+                }
+            },
+
+            startTimer() {
+                const display = document.getElementById('timer-display');
+                
+                const updateTimer = () => {
+                    let m = Math.floor(this.state.timeRemaining / 60);
+                    let s = this.state.timeRemaining % 60;
+                    display.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                    
+                    if (this.state.timeRemaining <= 300) { // last 5 mins
+                        display.classList.add('text-red-600');
+                    }
+
+                    if (this.state.timeRemaining <= 0) {
+                        clearInterval(this.state.timerInterval);
+                        this.forceSubmit();
+                    }
+                    this.state.timeRemaining--;
+                };
+                
+                updateTimer(); // initial call
+                this.state.timerInterval = setInterval(updateTimer, 1000);
+            },
+
+            // --- STREAMING_CHUNK: Grading & Results ---
+            confirmSubmit() {
+                const answered = Object.keys(this.state.studentAnswers).length;
+                const total = this.state.questions.length;
+                let msg = `You have answered ${answered} out of ${total} questions. Are you sure you want to submit?`;
+                if(answered < total) msg = `WARNING: You still have ${total - answered} unanswered questions! Are you sure you want to submit?`;
+                
+                this.customConfirm("Submit Assessment", msg, () => {
+                    this.processSubmit();
+                });
+            },
+
+            forceSubmit() {
+                this.showToast('Time is up! Auto-submitting...', 'error');
+                this.processSubmit();
+            },
+
+            processSubmit() {
+                clearInterval(this.state.timerInterval);
+                this.state.isTestActive = false;
+
+                let correct = 0;
+                this.state.questions.forEach(q => {
+                    const studentAns = this.state.studentAnswers[q.id];
+                    if (studentAns === q.answer) correct++;
+                });
+
+                const totalScore = Math.round((correct / this.state.questions.length) * 100);
+
+                // Save if not test mode
+                if (!this.state.testMode) {
+                    const key = this.getStudentKey();
+                    this.state.students[key].attempts += 1;
+                    if (totalScore > this.state.students[key].bestScore) {
+                        this.state.students[key].bestScore = totalScore;
+                    }
+                    this.saveData();
+                }
+
+                this.renderResult(correct, this.state.questions.length, totalScore);
+            },
+
+            renderResult(correct, total, score) {
+                this.showView('result');
+                
+                document.getElementById('result-logo').src = this.state.settings.logo;
+                const dateOpts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute:'2-digit' };
+                document.getElementById('result-date').innerText = new Date().toLocaleDateString('en-ID', dateOpts);
+
+                document.getElementById('res-name').innerText = this.state.testMode ? "Admin (Uji Coba)" : this.state.currentUser.name;
+                document.getElementById('res-class').innerText = this.state.testMode ? "-" : `${this.state.currentUser.class} / ${this.state.currentUser.presensi}`;
+                
+                document.getElementById('res-score').innerText = score;
+                document.getElementById('res-detail').innerText = `Correct: ${correct} | Incorrect: ${total - correct} | Passing Grade: ${this.state.settings.kkm}`;
+
+                const statusEl = document.getElementById('res-status');
+                const printArea = document.getElementById('print-area');
+                
+                if (score >= this.state.settings.kkm) {
+                    statusEl.innerText = "PASSED";
+                    statusEl.className = "text-lg font-bold text-emerald-600 uppercase";
+                    printArea.className = "bg-white rounded-2xl shadow-xl p-8 border-t-8 border-emerald-500 relative";
+                } else {
+                    statusEl.innerText = "FAILED";
+                    statusEl.className = "text-lg font-bold text-red-600 uppercase";
+                    printArea.className = "bg-white rounded-2xl shadow-xl p-8 border-t-8 border-red-500 relative";
+                }
+
+                if(this.state.testMode) {
+                     document.getElementById('btn-back-intro').innerText = "Kembali ke Dashboard Admin";
+                     document.getElementById('btn-back-intro').onclick = () => {
+                         app.state.testMode = false;
+                         app.showView('admin');
+                     }
+                } else {
+                     document.getElementById('btn-back-intro').innerText = "Kembali ke Beranda";
+                     document.getElementById('btn-back-intro').onclick = () => app.routeUser();
+                }
+            }
+        };
+
+        // Initialize App on Load
+        window.onload = () => app.init();
+    </script>
+</body>
+</html>
